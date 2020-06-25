@@ -25,9 +25,36 @@ def main():
     # specified to the server in reverse order
     ipc = easyipc.PipeIPC('haha', 'hihi')
 
-    # TODO: Send a dictionary to the server
+    # Send a dictionary to the server
+    sys.stdout.write('[INFO] Sending a dictionary to the server... ')
+    dic = {'Hello': 'This is a test'}
+    tic_send = time.time()
+    ipc.send_whatever(dic)
+    toc_send = time.time()
+    sys.stdout.write("Took " + str(toc_send - tic_send) + " seconds.\n")
 
-    # TODO: Wait for the dictionary to come back from the server
+    # Wait for the dictionary to come back from the server
+    sys.stdout.write('[INFO] Waiting for the server to send the dictionary back... ')
+    received = False
+    dic_back = None
+    tic_recv = time.time()
+    while not received:
+        dic_back = ipc.recv_whatever() 
+        if dic_back is not None:
+            received = True
+    toc_recv = time.time()
+    sys.stdout.write("Took " + str(toc_recv - tic_recv) + " seconds.\n")
+    
+    toc = time.time()
+    print('[INFO] Elapsed round trip:', toc - tic)
+    
+    # Check that the dictionary we recived back is the same one we sent
+    if dic_back['Hello'] == 'This is a test':
+        sys.stdout.write("[OK]\n")
+    else
+        raise ValueError('[ERROR] We received something different.')
+    
+    tic = time.time()
 
     # Send numpy array to server
     sys.stdout.write('[INFO] Sending a numpy.ndarray to the server... ')

@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+""" 
+@brief Example of use of the easyipc.PipeIPC class as a server.
+       The only difference between server and client has to be
+       the order of the PIPE names.
+# @author Luis C. Garcia Peraza Herrera (luiscarlos.gph@gmail.com).abs
+# @date   20 June 2020.
+"""
 
 import socket
 import struct
@@ -9,53 +16,47 @@ import time
 # My imports
 import easyipc
 
+def main():
+    # Create IPC communications object
+    ipc = easyipc.PipeIPC('hihi', 'haha')
+    sys.stdout.write('[INFO] Waiting for something to arrive... ')
 
-""" 
-@brief Example of use of the easyipc.DatagramIPC class as a server.
-       The only difference between server and client has to be
-       the order of the PIPE names.
-"""
-print('Running DatagramIPC server... ')
-count = 0
-maxcount = 20
-ipc = easyipc.DatagramIPC(host='localhost', port=6987)
-data = None
-while count < maxcount:
-    # Wait for ping
-    reply = False
-    while not reply:
-        data = ipc.recv_ndarray((32, 3, 1080, 1920), np.float32) 
+    # Receive dictionary from the client 
+    dic = None
+    received = False
+    while not received:
+        dic = ipc.recv_whatever() 
+        if dic is not None:
+            received = True
+    sys.stdout.write("[OK]\n")
+    sys.stdout.write("[INFO] We got this...\n")
+    print(dic)
+
+    # Send dictionary back
+    sys.stdout.write("[INFO] We are going to send it back to the client... ")
+    ipc.send_whatever(dic)
+    print("[OK]\n")
+
+    # Receive numpy array from the client
+    sys.stdout.write('[INFO] Waiting for an array to arrive... ')
+    data = None
+    received = False
+    shape = (32, 3, 1080, 1920)
+    dtype = np.float32
+    while not received:
+        data = ipc.recv_ndarray(shape, dtype)
         if data is not None:
-            #print(data)
-            reply = True
+            received = True
+    sys.stdout.write("[OK]\n")
+    sys.stdout.write("[INFO] We got an array of shape...\n")
+    print(data.shape)
 
-    # Send pong
+    # Send array back
+    sys.stdout.write("[INFO] We are going to send it back to the client... ")
     ipc.send_ndarray(data)
-    count += 1
-print('[OK]')
+    print("[OK]\n")
 
-
-""" 
-@brief Example of use of the easyipc.PipeIPC class as a server.
-       The only difference between server and client has to be
-       the order of the PIPE names.
-"""
-print('Running PipeIPC server... ')
-count = 0
-maxcount = 20
-ipc = easyipc.PipeIPC('jiji', 'jaja')
-data = None
-while count < maxcount:
-    # Wait for ping
-    reply = False
-    while not reply:
-        data = ipc.recv_ndarray((32, 3, 1080, 1920), np.float32) 
-        if data is not None:
-            #print(data)
-            reply = True
-
-    # Send pong
-    ipc.send_ndarray(data)
-    count += 1
-print('[OK]')
-
+if __name__ == "__main__":
+    print('')
+    main()
+    print('')

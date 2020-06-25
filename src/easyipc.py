@@ -4,7 +4,7 @@
 @brief   Easy-to-use IPC module. Check the examples in 'server.py' and 'client.py'.
 @details You can send any object serializable by pickle and a bit more efficiently
          numpy.ndarray objects. DatagramIPC is implemented using UDP, and it is 
-         usually slower that the one implemented with FIFO pipes, PipeIPC.
+         usually slower that the one implemented with FIFOs, FifoIPC.
 @author  Luis C. Garcia Peraza Herrera (luiscarlos.gph@gmail.com).
 @date    24 June 2020.
 """
@@ -126,7 +126,7 @@ class DatagramIPC(BaseIPC):
         return self._sendall(data_bytes)
 
 
-class PipeIPC(BaseIPC):
+class FifoIPC(BaseIPC):
     
     def __init__(self, read_pipe_name, write_pipe_name, lensize=8):
         """
@@ -164,10 +164,14 @@ class PipeIPC(BaseIPC):
         self.lensize = lensize 
         self.poll = select.poll()
         self.poll.register(self.read_pipe, select.POLLIN) 
+        
+        # Register the method cleanup so that it is called on destruction
+        atexit.register(self.cleanup)
 
 
     def cleanup(self):
-        pass
+        os.close(self.read_pipe)
+        os.close(self.write_pipe)
 
 
     def recv_whatever(self):
@@ -175,6 +179,11 @@ class PipeIPC(BaseIPC):
         if (self.read_pipe, select.POLLIN) in self.poll.poll(1):
             raw_msglen = os.read(self.read_pipe, self.lensize)
             msglen = struct.unpack(BaseIPC.lensize_dict[self.lensize], raw_msglen)[0]
+
+            # Now we block until we can read
+            while (self.read_pipe, select.POLLIN) not in self.poll.poll(1):
+                continue
+
             data_bytes = os.read(self.read_pipe, msglen)
             msg = pickle.loads(data_bytes)
             return msg
@@ -203,6 +212,11 @@ class PipeIPC(BaseIPC):
         if (self.read_pipe, select.POLLIN) in self.poll.poll(1):
             raw_msglen = os.read(self.read_pipe, self.lensize)
             msglen = struct.unpack(BaseIPC.lensize_dict[self.lensize], raw_msglen)[0]
+
+            # Now we block until we can read the data
+            while (self.read_pipe, select.POLLIN) not in self.poll.poll(1):
+                continue
+
             data_bytes = os.read(self.read_pipe, msglen)
             if msglen != len(data_bytes):
                 raise IOError('The amount of data read is different than expected.')

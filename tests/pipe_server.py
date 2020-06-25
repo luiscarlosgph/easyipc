@@ -24,7 +24,7 @@ while count < maxcount:
     # Wait for ping
     reply = False
     while not reply:
-        data = ipc.recv_ndarray((32, 3, 1080, 1920), np.float32) 
+        data = ipc.recv_ndarray((32, 3, 108, 192), np.float32) 
         if data is not None:
             #print(data)
             reply = True
@@ -43,7 +43,7 @@ print('[OK]')
 print('Running PipeIPC server... ')
 count = 0
 maxcount = 20
-ipc = easyipc.PipeIPC('jiji', 'jaja')
+ipc = easyipc.PipeIPC('hihi', 'haha')
 data = None
 while count < maxcount:
     # Wait for ping

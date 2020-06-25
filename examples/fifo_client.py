@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """ 
-@brief Example of use of the easyipc.PipeIPC class as a client.
+@brief Example of use of the easyipc.FifoIPC class as a client.
        The only difference between server and client has to be
-       the order of the PIPE names.
+       the order of the FIFO names.
 # @author Luis C. Garcia Peraza Herrera (luiscarlos.gph@gmail.com).abs
 # @date   20 June 2020.
 """
@@ -23,7 +23,7 @@ def main():
     # Create IPC object for communications, you can use whatever
     # names you fancy for the PIPE names, as long as they are
     # specified to the server in reverse order
-    ipc = easyipc.PipeIPC('haha', 'hihi')
+    ipc = easyipc.FifoIPC('/tmp/haha', '/tmp/hihi')
 
     # Send a dictionary to the server
     sys.stdout.write('[INFO] Sending a dictionary to the server... ')
@@ -46,14 +46,15 @@ def main():
     sys.stdout.write("Took " + str(toc_recv - tic_recv) + " seconds.\n")
     
     toc = time.time()
-    print('[INFO] Elapsed round trip:', toc - tic)
+    sys.stdout.write('[INFO] Elapsed round trip: ' + str(toc - tic) + "\n")
     
     # Check that the dictionary we recived back is the same one we sent
     if dic_back['Hello'] == 'This is a test':
-        sys.stdout.write("[OK]\n")
-    else
+        sys.stdout.write("[OK] We received exactly the dictionary we sent.\n")
+    else:
         raise ValueError('[ERROR] We received something different.')
     
+    print('')
     tic = time.time()
 
     # Send numpy array to server
@@ -70,21 +71,20 @@ def main():
     data_back = None
     tic_recv = time.time()
     while not received:
-        data_back = ipc.recv_ndarray(batch.shape, np.float32) 
+        data_back = ipc.recv_ndarray(data.shape, np.float32) 
         if data_back is not None:
             received = True
     toc_recv = time.time()
     sys.stdout.write("Took " + str(toc_recv - tic_recv) + " seconds.\n")
     
     toc = time.time()
-    print('[INFO] Elapsed round trip:', toc - tic)
+    sys.stdout.write('[INFO] Elapsed round trip: ' + str(toc - tic) + "\n")
     
     # Check that the array we recived back is the same one we sent
-    sys.stdout.write('[INFO] Checking that the array we received back is the same we sent... ')
     eps = 1e-10
-    if np.sum(data - batch) < eps:
-        sys.stdout.write("[OK]\n")
-    else
+    if np.sum(data_back - data) < eps:
+        sys.stdout.write("[OK] We received exactly the array we sent.\n")
+    else:
         raise ValueError('[ERROR] We received something different.')
 
 if __name__ == "__main__":

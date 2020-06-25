@@ -24,7 +24,7 @@ data = None
 while count < maxcount:
     # Send ping
     tic = time.time()
-    batch = np.random.rand(32, 3, 1080, 1920).astype(np.float32)
+    batch = np.random.rand(32, 3, 108, 192).astype(np.float32)
     ipc.send_ndarray(batch)
     count +=1
 

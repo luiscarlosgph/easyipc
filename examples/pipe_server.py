@@ -12,14 +12,15 @@ import socket
 import struct
 import numpy as np
 import time
+import sys
 
 # My imports
 import easyipc
 
 def main():
     # Create IPC communications object
-    ipc = easyipc.PipeIPC('hihi', 'haha')
     sys.stdout.write('[INFO] Waiting for something to arrive... ')
+    ipc = easyipc.PipeIPC('hihi', 'haha')
 
     # Receive dictionary from the client 
     dic = None

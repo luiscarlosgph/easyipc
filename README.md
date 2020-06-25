@@ -1,2 +1,2 @@
-# easyipc
-Easy-to-use Python library for inter-process communications
+# EasyIPC
+Easy-to-use Python library for inter-process communications.

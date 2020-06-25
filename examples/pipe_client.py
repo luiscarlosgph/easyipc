@@ -25,13 +25,9 @@ def main():
     # specified to the server in reverse order
     ipc = easyipc.PipeIPC('haha', 'hihi')
 
-    ## Example 1: Sending an object to the server ##
-
-    # TODO: Example 1: Send a dictionary to the server
+    # TODO: Send a dictionary to the server
 
     # TODO: Wait for the dictionary to come back from the server
-
-    ## Example 2: Sending a numpy array to the server ##
 
     # Send numpy array to server
     sys.stdout.write('[INFO] Sending a numpy.ndarray to the server... ')

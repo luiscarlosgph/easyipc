@@ -12,21 +12,18 @@ import socket
 import struct
 import numpy as np
 import sys
-import time
 
 # My imports
 import easyipc
 
 def main():
-    tic = time.time()
-    
     # Create IPC object for communications, you can use whatever
     # names you fancy for the PIPE names, as long as they are
     # specified to the server in reverse order
     ipc = easyipc.FifoIPC('/tmp/haha', '/tmp/hihi')
 
     # Send a dictionary to the server
-    dic = {'Hello': 'This is a test'}
+    dic = {'Hello': 'This is an example.'}
     sys.stdout.write('[INFO] Sending a dictionary to the server... ')
     ipc.send_whatever(dic)
     sys.stdout.write("[OK]\n")
@@ -45,6 +42,7 @@ def main():
     sys.stdout.write('[INFO] Sending a numpy.ndarray to the server... ')
     data = np.random.rand(32, 3, 1080, 1920).astype(np.float32)
     ipc.send_ndarray(data)
+    sys.stdout.write("[OK]\n")
     
     # Wait for the array to come back from the server
     sys.stdout.write('[INFO] Waiting for the server to send the array back... ')

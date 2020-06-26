@@ -11,7 +11,6 @@
 import socket
 import struct
 import numpy as np
-import time
 import sys
 
 # My imports

@@ -17,7 +17,6 @@ import pickle
 import os
 import stat
 import select
-import time
 
 class BaseIPC:
     lensize_dict = {4: '>I', 8: '>Q'}
@@ -41,7 +40,7 @@ class BaseIPC:
     def cleanup(self): # Should be called automatically, use atexit module for this
         raise NotImplemented()
 
-
+'''
 class DatagramIPC(BaseIPC):
 
     def __init__(self, host='localhost', port=6987, bufsize=1024, lensize=8, compression=None):
@@ -124,6 +123,7 @@ class DatagramIPC(BaseIPC):
     def send_ndarray(self, data):
         data_bytes = data.tobytes()
         return self._sendall(data_bytes)
+'''
 
 
 class FifoIPC(BaseIPC):
@@ -155,16 +155,16 @@ class FifoIPC(BaseIPC):
                 raise ValueError('Read pipe ' + write_pipe_name + ' exists, but it is not a PIPE.')
         else:
             os.mkfifo(write_pipe_name)
-        
+
         # Open PIPEs
         self.read_pipe = os.open(read_pipe_name, os.O_RDONLY | os.O_NONBLOCK)
-        self.write_pipe = os.open(write_pipe_name, os.O_WRONLY)
-
+        self.write_pipe = os.open(write_pipe_name, os.O_RDWR)
+        
         # Create polling object for the reading PIPE 
         self.lensize = lensize 
         self.poll = select.poll()
         self.poll.register(self.read_pipe, select.POLLIN) 
-        
+
         # Register the method cleanup so that it is called on destruction
         atexit.register(self.cleanup)
 
@@ -176,19 +176,28 @@ class FifoIPC(BaseIPC):
 
     def recv_whatever(self):
         """ @brief This methods uses pickle, so whatever object serialisable by pickle is good."""
+        msg = None
+
+        # If there is something available...
         if (self.read_pipe, select.POLLIN) in self.poll.poll(1):
+            # Read the header containing the size of the message
             raw_msglen = os.read(self.read_pipe, self.lensize)
             msglen = struct.unpack(BaseIPC.lensize_dict[self.lensize], raw_msglen)[0]
 
-            # Now we block until we can read
+            # Now we block until we can read the actual message
             while (self.read_pipe, select.POLLIN) not in self.poll.poll(1):
                 continue
-
+            
+            # Read the actual message
             data_bytes = os.read(self.read_pipe, msglen)
+
+            # Quick integrity check
+            if len(data_bytes) != msglen:
+                raise IOError('Message received has a different size than expected.')
+            
             msg = pickle.loads(data_bytes)
-            return msg
-        else:
-            return None
+
+        return msg
 
 
     def send_whatever(self, data):
@@ -197,7 +206,6 @@ class FifoIPC(BaseIPC):
         msglen = struct.pack(BaseIPC.lensize_dict[self.lensize], len(data_bytes))
         os.write(self.write_pipe, msglen)
         os.write(self.write_pipe, data_bytes)
-        toc = time.time()
 
 
     def recv_ndarray(self, shape, dtype):
@@ -209,18 +217,25 @@ class FifoIPC(BaseIPC):
         @returns    either None (nothing was read) or a numpy.ndarray.
         """
         data = None
+
         if (self.read_pipe, select.POLLIN) in self.poll.poll(1):
+            # Read the header containing the size of the message
             raw_msglen = os.read(self.read_pipe, self.lensize)
             msglen = struct.unpack(BaseIPC.lensize_dict[self.lensize], raw_msglen)[0]
 
             # Now we block until we can read the data
             while (self.read_pipe, select.POLLIN) not in self.poll.poll(1):
                 continue
-
+            
+            # Read the data
             data_bytes = os.read(self.read_pipe, msglen)
+
+            # Quick integrity check 
             if msglen != len(data_bytes):
                 raise IOError('The amount of data read is different than expected.')
+
             data = np.fromstring(data_bytes, dtype=dtype).reshape(shape)
+
         return data
 
 
@@ -238,4 +253,5 @@ class FifoIPC(BaseIPC):
             raise IOError('The amount of data written is different than what it should be.')
 
 
-
+if __name__ == "__main__":
+    raise RuntimeError('The EasyIPC module is not a script and such not be executed as such.')

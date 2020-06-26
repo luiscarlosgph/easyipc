@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """ 
-@brief    This script creates a FIFO client/server pair and times
-          the time it takes to send 1GB of data among each other.
-# @author Luis C. Garcia Peraza Herrera (luiscarlos.gph@gmail.com).abs
-# @date   20 June 2020.
+@brief    This script performs the same operation as 'pipe_timing_report.py'.
+          It is intended to be a quick benchmark for communication of ndarrays.
+# @author Luis C. Garcia Peraza Herrera (luiscarlos.gph@gmail.com).
+# @date   26 June 2020.
 """
 
 import struct

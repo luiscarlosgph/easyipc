@@ -277,7 +277,7 @@ class Pipe(BaseIPC):
         if msglen != len(data_bytes):
             raise IOError('The amount of data read is different than expected.')
 
-        data = np.fromstring(data_bytes, dtype=dtype).reshape(shape)
+        data = np.frombuffer(data_bytes, dtype=dtype).reshape(shape)
 
         return data
 
@@ -291,7 +291,7 @@ class Pipe(BaseIPC):
         @param[in]  data  Numpy.ndarray.
         @returns    nothing.
         """
-        data_bytes = data.tostring()
+        data_bytes = data.tobytes()
         msglen = struct.pack(BaseIPC.lensize_dict[self.lensize], len(data_bytes))
         os.write(self.write_pipe, msglen)
         nbw = os.write(self.write_pipe, data_bytes)

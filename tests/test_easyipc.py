@@ -18,13 +18,13 @@ class TestEasyIPC(unittest.TestCase):
         data = [np.random.rand(1000, 1000) for i in range(100)]
         newpid = os.fork()
         if newpid == 0:
-            client = easyipc.PipeIPC('hoho')
+            client = easyipc.Pipe('hoho')
             client.connect()
             client.send_whatever({'Hello': 'from the client'})
             for i in range(len(data)):
                 client.send_ndarray(data[i])
         else:
-            server = easyipc.PipeIPC('hoho')
+            server = easyipc.Pipe('hoho')
             server.listen()
 
             whatever = server.recv_whatever()

@@ -29,7 +29,7 @@ def main():
         sys.stdout.flush()
 
         # Create client
-        client_ipc = easyipc.FifoIPC('haha')
+        client_ipc = easyipc.Pipe('haha')
         client_ipc.connect()
 
         # Create a random numpy array
@@ -49,7 +49,7 @@ def main():
         sys.stdout.write("Round trip of a 1GB numpy.ndarray done in " + str(toc - tic) + " seconds.\n")
 
     else:
-        server_ipc = easyipc.FifoIPC('haha')
+        server_ipc = easyipc.Pipe('haha')
         server_ipc.listen()
 
         # Wait for data to come in

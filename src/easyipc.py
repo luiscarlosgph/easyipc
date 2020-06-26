@@ -4,7 +4,7 @@
 @brief   Easy-to-use IPC module. Check the examples in 'server.py' and 'client.py'.
 @details You can send any object serializable by pickle and a bit more efficiently
          numpy.ndarray objects. DatagramIPC is implemented using UDP, and it is 
-         usually slower that the one implemented with FIFOs, PipeIPC.
+         usually slower that the one implemented with FIFOs, Pipe.
 @author  Luis C. Garcia Peraza Herrera (luiscarlos.gph@gmail.com).
 @date    24 June 2020.
 """
@@ -128,7 +128,7 @@ class DatagramIPC(BaseIPC):
 '''
 
 
-class PipeIPC(BaseIPC):
+class Pipe(BaseIPC):
     
     #def __init__(self, read_pipe_name, write_pipe_name, lensize=8):
     def __init__(self, pipe_name, lensize=8):
@@ -182,8 +182,8 @@ class PipeIPC(BaseIPC):
         self.listening = True
         self.write_pipe_name = os.path.join(tempfile.gettempdir(), '.' + self.pipe_name + '_client')
         self.read_pipe_name = os.path.join(tempfile.gettempdir(), '.' + self.pipe_name + '_server')
-        PipeIPC.mkpipe(self.write_pipe_name)
-        PipeIPC.mkpipe(self.read_pipe_name)
+        Pipe.mkpipe(self.write_pipe_name)
+        Pipe.mkpipe(self.read_pipe_name)
         self.read_pipe = os.open(self.read_pipe_name, os.O_RDONLY)
         self.write_pipe = os.open(self.write_pipe_name, os.O_WRONLY)
         #self.read_pipe = os.open(self.read_pipe_name, os.O_RDONLY | os.O_NONBLOCK)
@@ -196,8 +196,8 @@ class PipeIPC(BaseIPC):
         self.connected = True
         self.write_pipe_name = os.path.join(tempfile.gettempdir(), '.' + self.pipe_name + '_server')
         self.read_pipe_name = os.path.join(tempfile.gettempdir(), '.' + self.pipe_name + '_client')
-        PipeIPC.mkpipe(self.write_pipe_name)
-        PipeIPC.mkpipe(self.read_pipe_name)
+        Pipe.mkpipe(self.write_pipe_name)
+        Pipe.mkpipe(self.read_pipe_name)
         self.write_pipe = os.open(self.write_pipe_name, os.O_WRONLY)
         self.read_pipe = os.open(self.read_pipe_name, os.O_RDONLY)
 

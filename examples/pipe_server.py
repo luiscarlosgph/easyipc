@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """ 
-@brief Example of use of the easyipc.PipeIPC class as a server.
+@brief Example of use of the easyipc.Pipe class as a server.
        The only difference between server and client has to be
        the order of the FIFO names.
 # @author Luis C. Garcia Peraza Herrera (luiscarlos.gph@gmail.com).abs
@@ -20,7 +20,7 @@ def main():
     # Create IPC communications object
     sys.stdout.write('[INFO] Waiting for something to arrive... ')
     sys.stdout.flush()
-    ipc = easyipc.PipeIPC('haha')
+    ipc = easyipc.Pipe('haha')
     ipc.listen()
 
     # Receive dictionary from the client 

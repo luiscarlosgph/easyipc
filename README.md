@@ -52,12 +52,12 @@ arr = client.recv_ndarray(shape, dtype)  # Blocks until it receives an array
 ```
 Too see some more examples click [here](https://github.com/luiscarlosgph/easyipc/tree/master/examples).
 
-# Speed
-In the [examples](https://github.com/luiscarlosgph/easyipc/tree/master/examples) folder, two timing scripts can be found: [pipe_timing_report.py](https://github.com/luiscarlosgph/easyipc/tree/master/examples/pipe_timing_report.py) and [zmq_timing_report.py](https://github.com/luiscarlosgph/easyipc/tree/master/examples/zmq_timing_report.py). The same operation is performed by both, a round trip of a numpy array of shape (32, 3, 1700, 1700), whose size if approximately 1GB. These are the results obtained in Ubuntu 16.04 on a machine with Intel(R) Core(TM) i7-4790K CPU @ 4.00GHz.
-| Software                      | Time          |
-| -------------                 | ------------- |
-| EasyIPC                       | 1.8s          |
-| [ZeroMQ](https://zeromq.org)  | 2.8s          |
+# Speed benchmark
+In the [examples](https://github.com/luiscarlosgph/easyipc/tree/master/examples) folder, two timing scripts can be found: [pipe_timing_report.py](https://github.com/luiscarlosgph/easyipc/tree/master/examples/pipe_timing_report.py) and [zmq_timing_report.py](https://github.com/luiscarlosgph/easyipc/tree/master/examples/zmq_timing_report.py). They both performed the same operation, a round trip of a numpy array of shape (32, 3, 1700, 1700) whose size if approximately 1GB. The results obtained on an Intel(R) Core(TM) i7-4790K CPU @ 4.00GHz machine running Ubuntu 16.04 are as follows:
+| Script                      | Execution time          |
+| -------------               | ----------------------- |
+| EasyIPC ([pipe_timing_report.py](https://github.com/luiscarlosgph/easyipc/tree/master/examples/pipe_timing_report.py))                     | 1.8s          |
+| [ZeroMQ](https://zeromq.org) ([zmq_timing_report.py](https://github.com/luiscarlosgph/easyipc/tree/master/examples/zmq_timing_report.py))  | 2.8s          |
 
 # Unit testing
 To run the tests execute:

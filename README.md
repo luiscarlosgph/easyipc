@@ -27,7 +27,7 @@ whatever_object = {'Hello': 'This is an example'}
 # Send an object 
 server.send_whatever(whatever_object)  # Blocks until all data is sent
 
-# Send a numpy.ndarray (you can send numpy arrays with send_whatever(), but this is faster)
+# Send a numpy.ndarray: you can send numpy arrays with send_whatever(), but this is faster
 shape = (32, 3, 1080, 1920)
 dtype = np.float32
 arr = np.ones(shape, dtype=dtype)

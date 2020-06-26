@@ -12,9 +12,7 @@ import numpy as np
 import sys
 import time
 import os
-
-# My imports
-import easyipc
+import zmq
 
 def main():
     # Create a 1GB numpy.ndarray 
@@ -28,19 +26,20 @@ def main():
         sys.stdout.flush()
 
         # Create client
-        client_ipc = easyipc.Pipe('haha')
-        client_ipc.connect()
+        client_context = zmq.Context()
+        client_ipc = client_context.socket(zmq.REQ)
+        client_ipc.connect('ipc:///tmp/zmqtest')
 
         # Create a random numpy array
         data = np.random.rand(*shape).astype(dtype)
         
         tic = time.time()
-        
+
         # Ping
-        client_ipc.send_ndarray(data)
+        client_ipc.send(data.tobytes())
         
         # Wait for the data to come back
-        data_back = client_ipc.recv_ndarray(shape, dtype)
+        data_back = np.frombuffer(client_ipc.recv(), dtype=dtype).reshape(shape)
 
         toc = time.time()
 
@@ -48,14 +47,15 @@ def main():
         sys.stdout.write("Round trip of a 1GB numpy.ndarray done in " + str(toc - tic) + " seconds.\n")
 
     else:
-        server_ipc = easyipc.Pipe('haha')
-        server_ipc.listen()
+        server_context = zmq.Context()
+        server_ipc = server_context.socket(zmq.REP)
+        server_ipc.bind('ipc:///tmp/zmqtest')
 
         # Wait for data to come in
-        data_received = server_ipc.recv_ndarray(shape, dtype)
+        data_received = np.frombuffer(server_ipc.recv(), dtype=dtype).reshape(shape)
 
         # Pong
-        server_ipc.send_ndarray(data_received)
+        server_ipc.send(data_received.tobytes())
 
     
 if __name__ == "__main__":

@@ -16,7 +16,7 @@ import easyipc
 server = easyipc.Pipe('haha')
 server.listen()                                    # Blocks until a client is connected
 whatever_object = {'Hello': 'This is an example'}
-server.send_whatever(whatever_object)
+server.send_whatever(whatever_object)              # Blocks until all the data is sent
 ```
 Client:
 ```

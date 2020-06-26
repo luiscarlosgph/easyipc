@@ -20,6 +20,7 @@ import stat
 import select
 import tempfile
 
+
 class BaseIPC:
     lensize_dict = {4: '>I', 8: '>Q'}
 
@@ -41,91 +42,6 @@ class BaseIPC:
 
     def cleanup(self): # Should be called automatically, use atexit module for this
         raise NotImplemented()
-
-'''
-class DatagramIPC(BaseIPC):
-
-    def __init__(self, host='localhost', port=6987, bufsize=1024, lensize=8, compression=None):
-        self.address = (host, port)
-        self.bufsize = bufsize
-        self.lensize = lensize
-        self.compression = compression
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.is_server = False
-        self.client_address = None
-        try:
-            self.sock.bind(self.address)
-            self.is_server = True
-        except:
-            # If we cannot bind is because we are the client, 
-            self.sock.connect(self.address)
-        atexit.register(self.cleanup)
-    
-
-    def cleanup(self):
-        self.sock.close() 
-    
-
-    def _recvall(self):
-        # Receive the first package which carries the length (in bytes) of 
-        # the data
-        buf = None
-        try:
-            if self.is_server:
-                # 0x40 means non-blocking
-                buf, self.client_address = self.sock.recvfrom(self.bufsize, 
-                                                              0x40) 
-            else:
-                buf = self.sock.recv(self.bufsize, 0x40) 
-        except socket.error:
-            return None
-        
-        # Read total message length in bytes
-        msglen = struct.unpack(BaseIPC.lensize_dict[self.lensize], buf[:self.lensize])[0]
-
-        # Read all the datagrams we need
-        data = bytearray(buf[self.lensize:])
-        while len(data) < msglen:
-            dgsize = min(self.bufsize, msglen - len(data))
-            dg = self.sock.recv(dgsize)
-            data.extend(dg)
-        return data
-
-
-    def _sendall(self, data):
-        msg = struct.pack(BaseIPC.lensize_dict[self.lensize], len(data)) + data
-        sent = 0
-        while sent < len(msg):
-            dgsize = min(self.bufsize, len(msg) - sent)
-            if self.is_server:
-                self.sock.sendto(msg[sent:sent + dgsize], self.client_address)
-            else:
-                self.sock.sendall(msg[sent:sent + dgsize])
-            sent += self.bufsize
-
-
-    def recv_whatever(self):
-        data = self._recvall()
-        return pickle.loads(data) if data else data
-
-
-    def send_whatever(self, data):
-        data_bytes = pickle.dumps(data)
-        return self._sendall(data_bytes)
-    
-
-    def recv_ndarray(self, shape, dtype):
-        data = None
-        data_bytes = self._recvall()
-        if data_bytes is not None:
-            data = np.frombuffer(data_bytes, dtype=dtype).reshape(shape)
-        return data
-
-
-    def send_ndarray(self, data):
-        data_bytes = data.tobytes()
-        return self._sendall(data_bytes)
-'''
 
 
 class Pipe(BaseIPC):

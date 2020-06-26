@@ -59,4 +59,4 @@ python setup.py test
 ```
 
 # Support
-This code uses [FIFOs](https://man7.org/linux/man-pages/man7/pipe.7.html)(see [here](https://docs.python.org/3/library/os.html#os.mkfifo)), which are supported by both Linux and Mac. This code has only been tested in Ubuntu 16.04 and Ubuntu 18.04.
+This code uses [FIFOs](https://man7.org/linux/man-pages/man7/pipe.7.html) and particularly [os.mkfifo](https://docs.python.org/3/library/os.html#os.mkfifo)), which are supported by Unix-like systems only. This code has been tested in Ubuntu 16.04 and Ubuntu 18.04.

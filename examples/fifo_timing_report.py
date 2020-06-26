@@ -18,37 +18,27 @@ import os
 import easyipc
 
 def main():
-    tic = time.time()
+    # Create a 1GB numpy.ndarray 
+    shape = (32, 3, 17, 17)
+    dtype = np.float32
+    data = np.random.rand(*shape).astype(dtype)
 
     # Create a 'client' and a 'server'
-    shape = (32, 3, 170, 170)
-    dtype = np.float32
-    newpid = os.fork()
-    if newpid == 0:
-        # Child
-        client_ipc = easyipc.FifoIPC('/tmp/haha', '/tmp/hihi')
-        
-        # Create a 1GB numpy.ndarray 
-        data = np.random.rand(*shape).astype(dtype)
-        
-        # Send it to the server
-        client_ipc.send_ndarray(data)
-    else:
-        # Parent
-        server_ipc = easyipc.FifoIPC('/tmp/hihi', '/tmp/haha')
-        
-        # Get the numpy array
-        #server_ipc.recv_ndarray(shape, dtype)
+    client_ipc = easyipc.FifoIPC('/tmp/haha', '/tmp/hihi')
+    server_ipc = easyipc.FifoIPC('/tmp/hihi', '/tmp/haha')
     
-    # Send it and read it back
-    #sys.stdout.write("Sending a 1GB numpy.ndarray... ")
-    #sys.stdout.flush()
-    #tic = time.time()
-    #toc = time.time()
-    #sys.stdout.write("Round trip of a 1GB numpy.ndarray done in " + str(toc - tic) + " seconds.\n")
-
+    # Round trip
+    sys.stdout.write("Sending a 1GB numpy.ndarray... ")
+    sys.stdout.flush()
+    tic = time.time()
+    client_ipc.send_ndarray(data)
+    #data_back = server_ipc.recv_ndarray(shape, dtype)
+    toc = time.time()
+    sys.stdout.write("[OK]\n")
+    
+    # Report
+    sys.stdout.write("Round trip of a 1GB numpy.ndarray done in " + str(toc - tic) + " seconds.\n")
     
 if __name__ == "__main__":
     print('')
     main()
-    print('')

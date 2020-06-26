@@ -13,23 +13,19 @@ import easyipc
 
 class TestEasyIPC(unittest.TestCase):
 
-    def test_client_server_in_same_process(self):
-        client_ipc = easyipc.FifoIPC('/tmp/haha', '/tmp/hihi')
-        server_ipc = easyipc.FifoIPC('/tmp/hihi', '/tmp/haha')
-
     def test_client_in_fork(self):
         newpid = os.fork()
         if newpid == 0:
-            client_ipc = easyipc.FifoIPC('/tmp/haha', '/tmp/hihi')
+            client_ipc = easyipc.FifoIPC('haha')
         else:
-            server_ipc = easyipc.FifoIPC('/tmp/hihi', '/tmp/haha')
+            server_ipc = easyipc.FifoIPC('haha')
 
     def test_server_in_fork(self):
         newpid = os.fork()
         if newpid == 0:
-            server_ipc = easyipc.FifoIPC('/tmp/hihi', '/tmp/haha')
+            server_ipc = easyipc.FifoIPC('haha')
         else:
-            client_ipc = easyipc.FifoIPC('/tmp/haha', '/tmp/hihi')
+            client_ipc = easyipc.FifoIPC('haha')
 
     def test_fifo_pickle(self):
         client_ipc = easyipc.FifoIPC('/tmp/haha', '/tmp/hihi')

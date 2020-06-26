@@ -20,7 +20,8 @@ def main():
     # Create IPC communications object
     sys.stdout.write('[INFO] Waiting for something to arrive... ')
     sys.stdout.flush()
-    ipc = easyipc.FifoIPC('/tmp/hihi', '/tmp/haha')
+    ipc = easyipc.FifoIPC('haha')
+    ipc.listen()
 
     # Receive dictionary from the client 
     dic = None

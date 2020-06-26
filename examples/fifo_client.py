@@ -20,7 +20,8 @@ def main():
     # Create IPC object for communications, you can use whatever
     # names you fancy for the PIPE names, as long as they are
     # specified to the server in reverse order
-    ipc = easyipc.FifoIPC('/tmp/haha', '/tmp/hihi')
+    ipc = easyipc.FifoIPC('haha')
+    ipc.connect()
 
     # Send a dictionary to the server
     dic = {'Hello': 'This is an example.'}

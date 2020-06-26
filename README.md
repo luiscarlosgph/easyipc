@@ -2,6 +2,11 @@
 Easy-to-use Python library for inter-process communications.
 
 # Installation
+Using pip:
+```
+pip install easyipc --user
+```
+From source:
 ```
 git clone https://github.com/luiscarlosgph/easyipc.git
 cd easyipc

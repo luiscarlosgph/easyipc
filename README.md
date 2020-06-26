@@ -48,7 +48,7 @@ print(whatever_object)
 # Receive a numpy.ndarray
 shape = (32, 3, 1080, 1920)
 dtype = np.float32
-arr = client.recv_ndarray()  # Blocks until it receives an array
+arr = client.recv_ndarray(shape, dtype)  # Blocks until it receives an array
 ```
 Too see some more examples click [here](https://github.com/luiscarlosgph/easyipc/tree/master/examples).
 

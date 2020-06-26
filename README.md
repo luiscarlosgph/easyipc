@@ -8,3 +8,9 @@ cd easyipc
 python setup.py build
 python setup.py install --user
 ```
+
+# Tests
+To run the tests execute:
+```
+python setup.py test
+```

@@ -57,3 +57,6 @@ To run the tests execute:
 ```
 python setup.py test
 ```
+
+# Support
+This code uses [FIFOs](https://man7.org/linux/man-pages/man7/pipe.7.html), which are supported by both Linux and Mac. This code has only been tested in Ubuntu 16.04 and Ubuntu 18.04.

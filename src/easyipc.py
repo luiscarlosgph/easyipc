@@ -4,7 +4,7 @@
 @brief   Easy-to-use IPC module. Check the examples in 'server.py' and 'client.py'.
 @details You can send any object serializable by pickle and a bit more efficiently
          numpy.ndarray objects. DatagramIPC is implemented using UDP, and it is 
-         usually slower that the one implemented with FIFOs, FifoIPC.
+         usually slower that the one implemented with FIFOs, PipeIPC.
 @author  Luis C. Garcia Peraza Herrera (luiscarlos.gph@gmail.com).
 @date    24 June 2020.
 """
@@ -128,7 +128,7 @@ class DatagramIPC(BaseIPC):
 '''
 
 
-class FifoIPC(BaseIPC):
+class PipeIPC(BaseIPC):
     
     #def __init__(self, read_pipe_name, write_pipe_name, lensize=8):
     def __init__(self, pipe_name, lensize=8):
@@ -182,8 +182,8 @@ class FifoIPC(BaseIPC):
         self.listening = True
         self.write_pipe_name = os.path.join(tempfile.gettempdir(), '.' + self.pipe_name + '_client')
         self.read_pipe_name = os.path.join(tempfile.gettempdir(), '.' + self.pipe_name + '_server')
-        FifoIPC.mkpipe(self.write_pipe_name)
-        FifoIPC.mkpipe(self.read_pipe_name)
+        PipeIPC.mkpipe(self.write_pipe_name)
+        PipeIPC.mkpipe(self.read_pipe_name)
         self.read_pipe = os.open(self.read_pipe_name, os.O_RDONLY)
         self.write_pipe = os.open(self.write_pipe_name, os.O_WRONLY)
         #self.read_pipe = os.open(self.read_pipe_name, os.O_RDONLY | os.O_NONBLOCK)
@@ -196,8 +196,8 @@ class FifoIPC(BaseIPC):
         self.connected = True
         self.write_pipe_name = os.path.join(tempfile.gettempdir(), '.' + self.pipe_name + '_server')
         self.read_pipe_name = os.path.join(tempfile.gettempdir(), '.' + self.pipe_name + '_client')
-        FifoIPC.mkpipe(self.write_pipe_name)
-        FifoIPC.mkpipe(self.read_pipe_name)
+        PipeIPC.mkpipe(self.write_pipe_name)
+        PipeIPC.mkpipe(self.read_pipe_name)
         self.write_pipe = os.open(self.write_pipe_name, os.O_WRONLY)
         self.read_pipe = os.open(self.read_pipe_name, os.O_RDONLY)
 
@@ -254,7 +254,7 @@ class FifoIPC(BaseIPC):
     def recv_ndarray(self, shape, dtype):
         """ 
         @brief      Pickle is quite slow for large numpy arrays, so we have this dedicated method.
-        @details    This is a non-blocking operation (if there is no data available).
+        @details    This is a blocking operation (if there is no data available).
         @param[in]  shape  Shape of the array you expect. Speed comes at a price, the tostring() 
                            method of numpy does not encode shape or dtype.
         @param[in]  dtype  Numpy.ndarray datatype (e.g. np.float32).

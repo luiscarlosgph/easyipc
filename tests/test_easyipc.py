@@ -7,44 +7,33 @@
 import unittest
 import os
 import sys
+import numpy as np
 
 # My imports
 import easyipc
 
 class TestEasyIPC(unittest.TestCase):
-
-    def test_client_in_fork(self):
-        newpid = os.fork()
-        if newpid == 0:
-            client_ipc = easyipc.FifoIPC('haha')
-        else:
-            server_ipc = easyipc.FifoIPC('haha')
-
-    def test_server_in_fork(self):
-        newpid = os.fork()
-        if newpid == 0:
-            server_ipc = easyipc.FifoIPC('haha')
-        else:
-            client_ipc = easyipc.FifoIPC('haha')
-
-    def test_fifo_pickle(self):
-        client_ipc = easyipc.FifoIPC('/tmp/haha', '/tmp/hihi')
-        server_ipc = easyipc.FifoIPC('/tmp/hihi', '/tmp/haha')
-
-        # TODO: Send a dictionary (client -> server) and check integrity
-        
-        # TODO: Send a dictionary (server -> client) and check integrity
-
-        pass
     
-    def test_fifo_ndarray(self):
-        pass
+    def test_pipe(self):
+        data = [np.random.rand(1000, 1000) for i in range(100)]
+        newpid = os.fork()
+        if newpid == 0:
+            client = easyipc.PipeIPC('hoho')
+            client.connect()
+            client.send_whatever({'Hello': 'from the client'})
+            for i in range(len(data)):
+                client.send_ndarray(data[i])
+        else:
+            server = easyipc.PipeIPC('hoho')
+            server.listen()
 
-    def test_udp_pickle(self):
-        pass
+            whatever = server.recv_whatever()
+            self.assertTrue(whatever['Hello'] == 'from the client')
+            
+            for i in range(len(data)):
+                data_back = server.recv_ndarray(data[i].shape, data[i].dtype)
+                self.assertTrue(np.sum(data[i] - data_back) == 0)
 
-    def test_udp_ndarray(self):
-        pass
 
 if __name__ == '__main__':
     unittest.main()

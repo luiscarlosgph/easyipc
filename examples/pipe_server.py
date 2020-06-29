@@ -45,10 +45,10 @@ def main():
     sys.stdout.flush()
     data = None
     received = False
-    shape = (32, 3, 1080, 1920)
+    shape = (32, 3, 108, 192)
     dtype = np.float32
     while not received:
-        data = ipc.recv_ndarray(shape, dtype)
+        data = ipc.recv_array()
         if data is not None:
             received = True
     sys.stdout.write("[OK]\n")
@@ -58,7 +58,7 @@ def main():
     # Send array back
     sys.stdout.write("[INFO] We are going to send it back to the client... ")
     sys.stdout.flush()
-    ipc.send_ndarray(data)
+    ipc.send_array(data)
     print("[OK]\n")
 
 if __name__ == "__main__":

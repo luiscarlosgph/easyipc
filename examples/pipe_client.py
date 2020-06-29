@@ -26,33 +26,27 @@ def main():
     # Send a dictionary to the server
     dic = {'Hello': 'This is an example.'}
     sys.stdout.write('[INFO] Sending a dictionary to the server... ')
+    sys.stdout.flush()
     ipc.send_whatever(dic)
     sys.stdout.write("[OK]\n")
 
     # Wait for the dictionary to come back from the server
     sys.stdout.write('[INFO] Waiting for the server to send the dictionary back... ')
-    received = False
-    dic_back = None
-    while not received:
-        dic_back = ipc.recv_whatever() 
-        if dic_back is not None:
-            received = True
+    sys.stdout.flush()
+    dic_back = ipc.recv_whatever() 
     sys.stdout.write("[OK]\n")
     
     # Send numpy array to server
     sys.stdout.write('[INFO] Sending a numpy.ndarray to the server... ')
-    data = np.random.rand(32, 3, 1080, 1920).astype(np.float32)
-    ipc.send_ndarray(data)
+    sys.stdout.flush()
+    data = np.random.rand(32, 3, 1700, 1700).astype(np.float32)
+    ipc.send_array(data)
     sys.stdout.write("[OK]\n")
     
     # Wait for the array to come back from the server
     sys.stdout.write('[INFO] Waiting for the server to send the array back... ')
-    received = False
-    data_back = None
-    while not received:
-        data_back = ipc.recv_ndarray(data.shape, np.float32) 
-        if data_back is not None:
-            received = True
+    sys.stdout.flush()
+    data_back = ipc.recv_array() 
     sys.stdout.write("[OK]\n")
     
 if __name__ == "__main__":

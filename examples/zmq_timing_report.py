@@ -14,12 +14,29 @@ import time
 import os
 import zmq
 
+
+def send_array(socket, A, flags=0, copy=True, track=False):
+    """send a numpy array with metadata"""
+    md = dict(dtype = str(A.dtype), shape = A.shape,)
+    socket.send_json(md, flags|zmq.SNDMORE)
+    return socket.send(A, flags, copy=copy, track=track)
+
+
+def recv_array(socket, flags=0, copy=True, track=False):
+    """recv a numpy array"""
+    md = socket.recv_json(flags=flags)
+    msg = socket.recv(flags=flags, copy=copy, track=track)
+    A = np.frombuffer(msg, dtype=md['dtype'])
+    return A.reshape(md['shape'])
+
+
 def main():
     # Create a 1GB numpy.ndarray 
     shape = (32, 3, 1700, 1700)
     dtype = np.float32
     
     # Launch client and server
+    trials = 10
     newpid = os.fork()
     if newpid == 0:
         sys.stdout.write("Sending a 1GB numpy.ndarray... \n")
@@ -33,29 +50,33 @@ def main():
         # Create a random numpy array
         data = np.random.rand(*shape).astype(dtype)
         
-        tic = time.time()
+        times = []
+        for trial in range(trials):
+            tic = time.time()
 
-        # Ping
-        client_ipc.send(data.tobytes())
-        
-        # Wait for the data to come back
-        data_back = np.frombuffer(client_ipc.recv(), dtype=dtype).reshape(shape)
+            # Ping
+            send_array(client_ipc, data)
+            
+            # Wait for the data to come back
+            data_back = recv_array(client_ipc)
 
-        toc = time.time()
+            toc = time.time()
+            times.append(toc - tic)
 
         # Report
-        sys.stdout.write("Round trip of a 1GB numpy.ndarray done in " + str(toc - tic) + " seconds.\n")
+        sys.stdout.write("Round trip of a 1GB numpy.ndarray done in " + str(np.mean(times)) + " seconds.\n")
 
     else:
         server_context = zmq.Context()
         server_ipc = server_context.socket(zmq.REP)
         server_ipc.bind('ipc:///tmp/zmqtest')
 
-        # Wait for data to come in
-        data_received = np.frombuffer(server_ipc.recv(), dtype=dtype).reshape(shape)
+        for trial in range(trials):
+            # Wait for data to come in
+            data_received = recv_array(server_ipc)
 
-        # Pong
-        server_ipc.send(data_received.tobytes())
+            # Pong
+            send_array(server_ipc, data_received)
 
     
 if __name__ == "__main__":

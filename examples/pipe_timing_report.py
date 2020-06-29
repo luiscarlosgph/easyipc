@@ -17,11 +17,7 @@ import os
 import easyipc
 
 def main():
-    # Create a 1GB numpy.ndarray 
-    shape = (32, 3, 1700, 1700)
-    dtype = np.float32
-    
-    # Launch client and server
+    trials = 10
     newpid = os.fork()
     if newpid == 0:
         sys.stdout.write("Sending a 1GB numpy.ndarray... \n")
@@ -32,30 +28,37 @@ def main():
         client_ipc.connect()
 
         # Create a random numpy array
-        data = np.random.rand(*shape).astype(dtype)
+        data = np.random.rand(32, 3, 1700, 1700).astype(np.float32)
         
-        tic = time.time()
-        
-        # Ping
-        client_ipc.send_ndarray(data)
-        
-        # Wait for the data to come back
-        data_back = client_ipc.recv_ndarray(shape, dtype)
+        # Do round trips and average time 
+        times = [] 
+        for trial in range(trials):
+            
+            tic = time.time()
+            
+            # Ping: send array
+            client_ipc.send_array(data)
+            
+            # Wait for the data to come back
+            data_back = client_ipc.recv_array()
 
-        toc = time.time()
+            toc = time.time()
 
-        # Report
-        sys.stdout.write("Round trip of a 1GB numpy.ndarray done in " + str(toc - tic) + " seconds.\n")
+            # Report
+            times.append(toc - tic)
+        sys.stdout.write("Round trip of a 1GB numpy.ndarray done in " + str(np.mean(times)) + " seconds.\n")
 
     else:
         server_ipc = easyipc.Pipe('haha')
         server_ipc.listen()
 
         # Wait for data to come in
-        data_received = server_ipc.recv_ndarray(shape, dtype)
+        for trial in range(trials):
+            # Receive array
+            data_received = server_ipc.recv_array()
 
-        # Pong
-        server_ipc.send_ndarray(data_received)
+            # Pong: send it back
+            server_ipc.send_array(data_received)
 
     
 if __name__ == "__main__":

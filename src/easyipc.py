@@ -47,7 +47,7 @@ class BaseIPC:
 class Pipe(BaseIPC):
     
     #def __init__(self, read_pipe_name, write_pipe_name, lensize=8):
-    def __init__(self, pipe_name, lensize=8):
+    def __init__(self, pipe_name, lensize=8, header_len=128):
         """
         @brief      Easy to use wrapper for full-duplex IPC among two processes.
         @details    Two PIPEs are used for the task. They have to be inverted between
@@ -71,6 +71,7 @@ class Pipe(BaseIPC):
         
         # Create polling object for the reading PIPE 
         self.lensize = lensize 
+        self.header_len = header_len
         #self.poll = select.poll()
         #self.poll.register(self.read_pipe, select.POLLIN) 
 
@@ -167,53 +168,67 @@ class Pipe(BaseIPC):
         os.write(self.write_pipe, data_bytes)
 
 
-    def recv_ndarray(self, shape, dtype):
+    def recv_array(self):
         """ 
         @brief      Pickle is quite slow for large numpy arrays, so we have this dedicated method.
         @details    This is a blocking operation (if there is no data available).
-        @param[in]  shape  Shape of the array you expect. Speed comes at a price, the tostring() 
-                           method of numpy does not encode shape or dtype.
-        @param[in]  dtype  Numpy.ndarray datatype (e.g. np.float32).
-        @returns    either None (nothing available to read) or a numpy.ndarray.
+        @returns    a numpy.ndarray.
         """
-        data = None
 
-        #if (self.read_pipe, select.POLLIN) in self.poll.poll(1):
-        # Read the header containing the size of the message
-        raw_msglen = os.read(self.read_pipe, self.lensize)
-        msglen = struct.unpack(BaseIPC.lensize_dict[self.lensize], raw_msglen)[0]
-
-        # Now we block until we can read the data
-        #self.poll.poll(None)
+        # Read length 
+        raw_length = os.read(self.read_pipe, self.lensize)
+        length = struct.unpack(BaseIPC.lensize_dict[self.lensize], raw_length)[0]
         
-        # Read the data
-        data_bytes = os.read(self.read_pipe, msglen)
+        # Read header 
+        header = os.read(self.read_pipe, self.header_len) 
+        header_len = struct.unpack(BaseIPC.lensize_dict[self.lensize], header[:self.lensize])[0]
+        header_info = eval(header[self.lensize:self.lensize + header_len].decode('ascii'))
+
+        # Read body
+        body = os.read(self.read_pipe, length - self.header_len)
+        data = np.frombuffer(body, dtype=header_info['dtype']).reshape(header_info['shape'])
 
         # Quick integrity check 
-        if msglen != len(data_bytes):
+        if length - len(header) != len(body):
             raise IOError('The amount of data read is different than expected.')
-
-        data = np.frombuffer(data_bytes, dtype=dtype).reshape(shape)
 
         return data
 
 
-    def send_ndarray(self, data):
+    def send_array(self, data):
         """ 
         @brief      Pickle is quite slow for large numpy arrays, so we have this dedicated method.
+
         @details    This is a blocking operation. It blocks when the pipe is full.
                     A pipe has a limited capacity (typically 16 pages). This method will block 
                     until data has been read and there is space again.
+
+                    Message structure: [ length | header | body ]
+
+                    length: self.lensize bytes
+                    header: 128 bytes
+                    body  : whatever 'length' says minus the 64 of the header
+    
         @param[in]  data  Numpy.ndarray.
         @returns    nothing.
         """
-        data_bytes = data.tobytes()
-        msglen = struct.pack(BaseIPC.lensize_dict[self.lensize], len(data_bytes))
-        os.write(self.write_pipe, msglen)
-        nbw = os.write(self.write_pipe, data_bytes)
-        if len(data_bytes) != nbw:
-            raise IOError('The amount of data written is different than what it should be.')
+        # Generate the bytes of the array
+        body = data.tobytes()
+        
+        # Generate the bytes of the length
+        length = struct.pack(BaseIPC.lensize_dict[self.lensize], len(body) + self.header_len)
 
+        # Generate the bytes of the header
+        header_info = str({'shape': data.shape, 'dtype': data.dtype.name}).encode('ascii')
+        header = bytearray(self.header_len)
+        header[:self.lensize] = struct.pack(BaseIPC.lensize_dict[self.lensize], len(header_info))
+        header[self.lensize:self.lensize + len(header_info)] = header_info
+
+        # Send length, header, and body 
+        os.write(self.write_pipe, length)
+        os.write(self.write_pipe, header)
+        os.write(self.write_pipe, body)
+        
 
 if __name__ == "__main__":
     raise RuntimeError('The EasyIPC module is not a script and such not be executed as such.')

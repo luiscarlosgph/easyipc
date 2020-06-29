@@ -22,7 +22,7 @@ class TestEasyIPC(unittest.TestCase):
             client.connect()
             client.send_whatever({'Hello': 'from the client'})
             for i in range(len(data)):
-                client.send_ndarray(data[i])
+                client.send_array(data[i])
         else:
             server = easyipc.Pipe('hoho')
             server.listen()
@@ -31,7 +31,7 @@ class TestEasyIPC(unittest.TestCase):
             self.assertTrue(whatever['Hello'] == 'from the client')
             
             for i in range(len(data)):
-                data_back = server.recv_ndarray(data[i].shape, data[i].dtype)
+                data_back = server.recv_array()
                 self.assertTrue(np.sum(data[i] - data_back) == 0)
 
 

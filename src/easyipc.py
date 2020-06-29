@@ -32,11 +32,11 @@ class BaseIPC:
         raise NotImplemented()
     
 
-    def recv_ndarray(self):
+    def recv_array(self):
         raise NotImplemented()
 
 
-    def send_ndarray(self, data):
+    def send_array(self, data):
         raise NotImplemented()
 
 
@@ -63,18 +63,9 @@ class Pipe(BaseIPC):
                                      is a lot of data.
         @returns    nothing.
         """
-        # Create PIPEs if they do not exist already 
-        # Open PIPEs
-        #self.read_pipe = os.open(read_pipe_name, os.O_RDONLY | os.O_NONBLOCK)
-        #self.write_pipe = os.open(write_pipe_name, os.O_RDWR)
         self.pipe_name = pipe_name
-        
-        # Create polling object for the reading PIPE 
         self.lensize = lensize 
         self.header_len = header_len
-        #self.poll = select.poll()
-        #self.poll.register(self.read_pipe, select.POLLIN) 
-
         self.listening = False
         self.connected = False
         self.read_pipe = None
@@ -97,13 +88,22 @@ class Pipe(BaseIPC):
         @brief Blocks until a client is connected.
         """
         self.listening = True
+        
+        # Compile the pipe paths
         self.write_pipe_name = os.path.join(tempfile.gettempdir(), '.' + self.pipe_name + '_client')
         self.read_pipe_name = os.path.join(tempfile.gettempdir(), '.' + self.pipe_name + '_server')
+
+        # Create pipes
         Pipe.mkpipe(self.write_pipe_name)
         Pipe.mkpipe(self.read_pipe_name)
+
+        # Open pipes
         self.read_pipe = os.open(self.read_pipe_name, os.O_RDONLY)
         self.write_pipe = os.open(self.write_pipe_name, os.O_WRONLY)
-        #self.read_pipe = os.open(self.read_pipe_name, os.O_RDONLY | os.O_NONBLOCK)
+
+        # Create polling object for the reading pipe
+        self.poll = select.poll()
+        self.poll.register(self.read_pipe, select.POLLIN) 
 
 
     def connect(self):
@@ -111,12 +111,22 @@ class Pipe(BaseIPC):
         @brief Blocks until a server starts listening.
         """
         self.connected = True
+        
+        # Put together the names of the I/O pipes
         self.write_pipe_name = os.path.join(tempfile.gettempdir(), '.' + self.pipe_name + '_server')
         self.read_pipe_name = os.path.join(tempfile.gettempdir(), '.' + self.pipe_name + '_client')
+        
+        # Create pipes 
         Pipe.mkpipe(self.write_pipe_name)
         Pipe.mkpipe(self.read_pipe_name)
+
+        # Open pipes 
         self.write_pipe = os.open(self.write_pipe_name, os.O_WRONLY)
         self.read_pipe = os.open(self.read_pipe_name, os.O_RDONLY)
+
+        # Create polling object for the reading pipe
+        self.poll = select.poll()
+        self.poll.register(self.read_pipe, select.POLLIN) 
 
 
     def cleanup(self):
@@ -125,33 +135,28 @@ class Pipe(BaseIPC):
             os.close(self.write_pipe)
 
 
-    def recv_whatever(self):
+    def recv_whatever(self, blocking=True):
         """ 
         @brief    This methods uses pickle, so whatever object serialisable by pickle is good.
         @details  This is a blocking operation. 
-        @returns  None if there is nothing available to be read.
+        @returns  whhatever object sent from the other end or None if there is 
+                  nothing available to be read and we are in non-blocking mode.
         """
-        msg = None
+        if not blocking and (self.read_pipe, select.POLLIN) not in self.poll.poll(1):
+            return None
 
-        # If there is something available...
-        #if (self.read_pipe, select.POLLIN) in self.poll.poll(1):
-        # Read the header containing the size of the message
-        raw_msglen = os.read(self.read_pipe, self.lensize)
-        msglen = struct.unpack(BaseIPC.lensize_dict[self.lensize], raw_msglen)[0]
+        # Read header containing the size of the message
+        raw_length = os.read(self.read_pipe, self.lensize)
+        length = struct.unpack(BaseIPC.lensize_dict[self.lensize], raw_length)[0]
 
-        # Now we block until we can read the actual message
-        #self.poll.poll(None)
-        
         # Read the actual message
-        data_bytes = os.read(self.read_pipe, msglen)
+        body = os.read(self.read_pipe, length)
 
         # Quick integrity check
-        if len(data_bytes) != msglen:
+        if length != len(body):
             raise IOError('Message received has a different size than expected.')
         
-        msg = pickle.loads(data_bytes)
-
-        return msg
+        return pickle.loads(body)
 
 
     def send_whatever(self, data):
@@ -162,18 +167,21 @@ class Pipe(BaseIPC):
                   until data has been read and there is space again.
         @returns  nothing.
         """
-        data_bytes = pickle.dumps(data)
-        msglen = struct.pack(BaseIPC.lensize_dict[self.lensize], len(data_bytes))
-        os.write(self.write_pipe, msglen)
-        os.write(self.write_pipe, data_bytes)
+        body = pickle.dumps(data)
+        length = struct.pack(BaseIPC.lensize_dict[self.lensize], len(body))
+        os.write(self.write_pipe, length)
+        os.write(self.write_pipe, body)
 
 
-    def recv_array(self):
+    def recv_array(self, blocking=True):
         """ 
         @brief      Pickle is quite slow for large numpy arrays, so we have this dedicated method.
         @details    This is a blocking operation (if there is no data available).
-        @returns    a numpy.ndarray.
+        @returns    a numpy.ndarray. If blocking is False and there is nothing to be read, it
+                    quickly returns None.
         """
+        if not blocking and (self.read_pipe, select.POLLIN) not in self.poll.poll(1):
+            return None
 
         # Read length 
         raw_length = os.read(self.read_pipe, self.lensize)

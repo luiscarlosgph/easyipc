@@ -4,7 +4,7 @@ import setuptools
 import unittest
 
 setuptools.setup(name='easyipc',
-    version='0.0.4',
+    version='0.0.5',
     description='Easy-to-use Python library for inter-process communications.',
     author='Luis C. Garcia-Peraza Herrera',
     author_email='luiscarlos.gph@gmail.com',

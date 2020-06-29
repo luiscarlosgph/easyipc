@@ -26,8 +26,10 @@ class TestEasyIPC(unittest.TestCase):
         else:
             server = easyipc.Pipe('hoho')
             server.listen()
-
-            whatever = server.recv_whatever()
+            
+            whatever = None
+            while whatever is None:
+                whatever = server.recv_whatever(blocking=False)
             self.assertTrue(whatever['Hello'] == 'from the client')
             
             for i in range(len(data)):

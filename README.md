@@ -28,10 +28,8 @@ whatever_object = {'Hello': 'This is an example'}
 server.send_whatever(whatever_object)  # Blocks until all data is sent
 
 # Send a numpy.ndarray: you can send numpy arrays with send_whatever(), but this is faster
-shape = (32, 3, 1080, 1920)
-dtype = np.float32
-arr = np.ones(shape, dtype=dtype)
-server.send_ndarray(arr)  # Block until all data is sent
+arr = np.ones((32, 3, 1080, 1920), dtype=np.float32)
+server.send_array(arr)  # Block until all data is sent
 ```
 Client:
 ```
@@ -46,9 +44,7 @@ whatever_object = client.recv_whatever()  # Blocks until it receives an object
 print(whatever_object)
 
 # Receive a numpy.ndarray
-shape = (32, 3, 1080, 1920)
-dtype = np.float32
-arr = client.recv_ndarray(shape, dtype)  # Blocks until it receives an array
+arr = client.recv_array()  # Blocks until it receives an array
 ```
 Too see some more examples click [here](https://github.com/luiscarlosgph/easyipc/tree/master/examples).
 
@@ -56,8 +52,8 @@ Too see some more examples click [here](https://github.com/luiscarlosgph/easyipc
 In the [examples](https://github.com/luiscarlosgph/easyipc/tree/master/examples) folder, two timing scripts can be found: [pipe_timing_report.py](https://github.com/luiscarlosgph/easyipc/tree/master/examples/pipe_timing_report.py) and [zmq_timing_report.py](https://github.com/luiscarlosgph/easyipc/tree/master/examples/zmq_timing_report.py). They both performed the same operation, a round trip of a numpy array of shape (32, 3, 1700, 1700) whose size if approximately 1GB. The results obtained on an Intel(R) Core(TM) i7-4790K CPU @ 4.00GHz machine running Ubuntu 16.04 are as follows:
 | Script                      | Execution time          |
 | -------------               | ----------------------- |
-| EasyIPC ([pipe_timing_report.py](https://github.com/luiscarlosgph/easyipc/tree/master/examples/pipe_timing_report.py))                     | 1.8s          |
-| [ZeroMQ](https://zeromq.org) ([zmq_timing_report.py](https://github.com/luiscarlosgph/easyipc/tree/master/examples/zmq_timing_report.py))  | 2.8s          |
+| EasyIPC ([pipe_timing_report.py](https://github.com/luiscarlosgph/easyipc/tree/master/examples/pipe_timing_report.py))                     | 1.81s          |
+| [ZeroMQ](https://zeromq.org) ([zmq_timing_report.py](https://github.com/luiscarlosgph/easyipc/tree/master/examples/zmq_timing_report.py))  | 2.07s          |
 
 # Unit testing
 To run the tests execute:

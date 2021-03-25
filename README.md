@@ -1,7 +1,9 @@
-# EasyIPC
+EasyIPC
+-------
 Easy-to-use Python library for inter-process communications.
 
-# Installation
+Installation
+------------
 Using pip:
 ```
 pip install easyipc --user
@@ -14,7 +16,8 @@ python setup.py build
 python setup.py install --user
 ```
 
-# Usage
+Usage
+-----
 Server:
 ```
 import numpy as np
@@ -48,18 +51,21 @@ arr = client.recv_array()  # Blocks until it receives an array
 ```
 Too see some more examples click [here](https://github.com/luiscarlosgph/easyipc/tree/master/examples).
 
-# Speed benchmark
+Speed benchmark
+---------------
 In the [examples](https://github.com/luiscarlosgph/easyipc/tree/master/examples) folder, two timing scripts can be found: [pipe_timing_report.py](https://github.com/luiscarlosgph/easyipc/tree/master/examples/pipe_timing_report.py) and [zmq_timing_report.py](https://github.com/luiscarlosgph/easyipc/tree/master/examples/zmq_timing_report.py). They both performed the same operation, a round trip of a numpy array of shape (32, 3, 1700, 1700) whose size if approximately 1GB. The results obtained on an Intel(R) Core(TM) i7-4790K CPU @ 4.00GHz machine running Ubuntu 16.04 are as follows:
 | Script                      | Execution time          |
 | -------------               | ----------------------- |
 | EasyIPC ([pipe_timing_report.py](https://github.com/luiscarlosgph/easyipc/tree/master/examples/pipe_timing_report.py))                     | 1.81s          |
 | [ZeroMQ](https://zeromq.org) ([zmq_timing_report.py](https://github.com/luiscarlosgph/easyipc/tree/master/examples/zmq_timing_report.py))  | 2.07s          |
 
-# Unit testing
+Unit testing
+------------
 To run the tests execute:
 ```
 python setup.py test
 ```
 
-# Support
+Support
+-------
 This code uses [FIFOs](https://man7.org/linux/man-pages/man7/pipe.7.html) (particularly [os.mkfifo](https://docs.python.org/3/library/os.html#os.mkfifo)), which are supported by Unix-like systems only. This code has been tested in Ubuntu 16.04 and Ubuntu 18.04.
